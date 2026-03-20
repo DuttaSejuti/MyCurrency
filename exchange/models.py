@@ -14,7 +14,6 @@ class ExchangeRateProvider(models.Model):
     adapter_key = models.CharField(max_length=50, unique=True, help_text="Internal identifier (e.g. currency_beacon")
     priority = models.IntegerField(default=10)
     is_active = models.BooleanField(default=True)
-    settings_json = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['priority']
@@ -31,9 +30,7 @@ class CurrencyExchangeRate(models.Model):
     provider = models.ForeignKey(ExchangeRateProvider, on_delete=models.CASCADE, related_name='rates_provider')
 
     class Meta:
-        indexes = [
-            models.Index(fields=['source_currency', 'exchanged_currency', 'valuation_date']),
-        ]
+        indexes = [models.Index(fields=['source_currency', 'exchanged_currency', 'valuation_date'])]
         constraints = [
             models.UniqueConstraint(
                 fields=['source_currency', 'exchanged_currency', 'valuation_date', 'provider'],
