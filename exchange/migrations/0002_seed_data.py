@@ -5,13 +5,16 @@ def seed_data(apps, schema_editor):
     ExchangeRateProvider = apps.get_model('exchange', 'ExchangeRateProvider')
 
     currencies = [
-        {'code': 'EUR', 'name': 'Euro'},
-        {'code': 'CHF', 'name': 'Swiss Franc'},
-        {'code': 'USD', 'name': 'US Dollar'},
-        {'code': 'GBP', 'name': 'British Pound'},
+        {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
+        {'code': 'CHF', 'name': 'Swiss Franc', 'symbol': 'CHF'},
+        {'code': 'USD', 'name': 'US Dollar', 'symbol': '$'},
+        {'code': 'GBP', 'name': 'British Pound', 'symbol': '£'},
     ]
     for curr_data in currencies:
-        Currency.objects.get_or_create(code=curr_data['code'], defaults={'name': curr_data['name']})
+        Currency.objects.get_or_create(
+            code=curr_data['code'],
+            defaults={'name': curr_data['name'], 'symbol': curr_data['symbol']}
+        )
 
     providers = [
         {
@@ -31,6 +34,7 @@ def seed_data(apps, schema_editor):
             defaults={
                 'name': prov_data['name'],
                 'priority': prov_data['priority'],
+                'is_active': True
             }
         )
 
