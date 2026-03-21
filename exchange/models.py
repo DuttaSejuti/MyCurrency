@@ -3,7 +3,8 @@ from django.db import models
 class Currency(models.Model):
     # e.g. EUR, USD, CHF, GBP
     code = models.CharField(max_length=3, unique=True)
-    name = models.CharField(max_length=50, blank=True)
+    name = models.CharField(max_length=20, db_index=True)
+    symbol = models.CharField(max_length=10)
 
     class Meta:
         verbose_name_plural = 'Currencies'
@@ -14,7 +15,11 @@ class Currency(models.Model):
 class ExchangeRateProvider(models.Model):
     # e.g. CurrencyBeacon, Mock
     name = models.CharField(max_length=100)
-    adapter_key = models.CharField(max_length=50, unique=True, help_text="Internal identifier (e.g. currency_beacon")
+    adapter_key = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Internal identifier (e.g. currency_beacon)"
+    )
     priority = models.IntegerField(default=10)
     is_active = models.BooleanField(default=True)
 
@@ -26,11 +31,13 @@ class ExchangeRateProvider(models.Model):
 
 class CurrencyExchangeRate(models.Model):
     # the historical exchange rate between two currencies on a given date provided by a specific source
-    source_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name='rates_as_source')
-    exchanged_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name='rates_as_exchanged')
+    source_currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name='base_rates')
+    exchanged_currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name='exchanged_rates')
     valuation_date = models.DateField(db_index=True)
-    rate_value = models.DecimalField(max_digits=9, decimal_places=4)
+    rate_value = models.DecimalField(db_index=True, max_digits=18, decimal_places=6)
     provider = models.ForeignKey(ExchangeRateProvider, on_delete=models.CASCADE, related_name='rates_provider')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         indexes = [models.Index(fields=['source_currency', 'exchanged_currency', 'valuation_date'])]
