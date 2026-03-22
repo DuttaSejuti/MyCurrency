@@ -5,7 +5,8 @@ from django.conf import settings
 from .base import BaseProvider
 
 class CurrencyBeaconProvider(BaseProvider):
-    BASE_URL = "https://api.currencybeacon.com/v1/historical"
+    BASE_URL_HISTORICAL = "https://api.currencybeacon.com/v1/historical"
+    BASE_URL_LATEST = "https://api.currencybeacon.com/v1/latest"
 
     def __init__(self, api_key: str = None):
         self.api_key = api_key or getattr(settings, "CURRENCY_BEACON_API_KEY", "")
@@ -19,17 +20,28 @@ class CurrencyBeaconProvider(BaseProvider):
         if not self.api_key:
             raise ValueError("CurrencyBeacon API Key is missing. Please configure CURRENCY_BEACON_API_KEY.")
 
-        params = {
-            'api_key': self.api_key,
-            'base': source_currency,
-            'date': valuation_date.strftime('%Y-%m-%d'),
-            'symbols': exchanged_currency
-        }
+        today = datetime.date.today()
+        if valuation_date >= today:
+            url = self.BASE_URL_LATEST
+            params = {
+                'api_key': self.api_key,
+                'base': source_currency,
+                'symbols': exchanged_currency
+            }
+        else:
+            url = self.BASE_URL_HISTORICAL
+            params = {
+                'api_key': self.api_key,
+                'base': source_currency,
+                'date': valuation_date.strftime('%Y-%m-%d'),
+                'symbols': exchanged_currency
+            }
 
         try:
-            response = requests.get(self.BASE_URL, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
+            # print("DEBUG RESPONSE:", data)
 
             response_coe = data.get('meta', {}).get('code', {})
             if response_coe != 200:

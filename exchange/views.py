@@ -1,3 +1,68 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Currency, CurrencyExchangeRate
+from .serializers import CurrencySerializer, ConvertSerializer, RateListSerializer
+from .services import get_exchange_rate_data
+import datetime
 
-# Create your views here.
+class CurrencyViewSet(viewsets.ModelViewSet):
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+
+class ConvertAPIView(APIView):
+    def post(self, request):
+        serializer = ConvertSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        source_code = serializer.validated_data['source_currency']
+        target_code = serializer.validated_data['exchanged_currency']
+        amount = serializer.validated_data['amount']
+
+        try:
+            source = Currency.objects.get(code=source_code)
+            target = Currency.objects.get(code=target_code)
+        except Currency.DoesNotExist:
+            return Response({"error": "Invalid currency code"}, status=status.HTTP_400_BAD_REQUEST)
+
+        rate = get_exchange_rate_data(source_currency=source, exchanged_currency=target, valuation_date=datetime.date.today())
+        converted_amount = amount * rate
+
+        return Response({
+            "rate": rate,
+            "converted_amount": converted_amount
+        })
+
+class RateListAPIView(APIView):
+    def get(self, request):
+        serializer = RateListSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        source_code = serializer.validated_data['source_currency']
+        date_from = serializer.validated_data['date_from']
+        date_to = serializer.validated_data['date_to']
+
+        try:
+            source = Currency.objects.get(code=source_code)
+        except Currency.DoesNotExist:
+            return Response(
+                {"error": "Invalid source currency"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        rates = CurrencyExchangeRate.objects.filter(
+            source_currency=source,
+            valuation_date__range=(date_from, date_to)
+        ).order_by('valuation_date')
+
+        data = [
+            {
+                "date": r.valuation_date,
+                "target_currency": r.exchanged_currency.code,
+                "rate": r.rate_value
+            }
+            for r in rates
+        ]
+
+        return Response(data)
