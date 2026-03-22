@@ -27,7 +27,8 @@ class ExchangeRateProvider(models.Model):
         ordering = ['priority']
 
     def __str__(self):
-        return f"{self.name} (Key: {self.adapter_key}, Priority: {self.priority}, Active: {self.is_active})"
+        #return f"{self.name} (Key: {self.adapter_key}, Priority: {self.priority}, Active: {self.is_active})"
+        return self.name
 
 class CurrencyExchangeRate(models.Model):
     # the historical exchange rate between two currencies on a given date provided by a specific source

@@ -12,7 +12,7 @@ def _get_cached_rate(
     target: Currency, 
     date: datetime.date, 
     provider: Optional[ExchangeRateProvider] = None
-) -> Optional[Decimal]:
+) -> Optional[CurrencyExchangeRate]:
     # Checks if the rate is already in the database
     query = CurrencyExchangeRate.objects.filter(
         source_currency=source,
@@ -22,8 +22,7 @@ def _get_cached_rate(
     if provider:
         query = query.filter(provider=provider)
     
-    cached = query.first()
-    return cached.rate_value if cached else None
+    return query.first()
 
 def _get_active_providers_sorted(
     specific_provider: Optional[ExchangeRateProvider] = None
@@ -67,13 +66,13 @@ def get_exchange_rate_data(
     exchanged_currency: Currency, 
     valuation_date: datetime.date, 
     provider: Optional[ExchangeRateProvider] = None
-) -> Decimal:
+) -> CurrencyExchangeRate:
     # save fetched rate to the database and provider fallback orchestration
 
     # 1. Check database cache
-    cached_val = _get_cached_rate(source_currency, exchanged_currency, valuation_date, provider)
-    if cached_val:
-        return cached_val
+    cached_obj = _get_cached_rate(source_currency, exchanged_currency, valuation_date, provider)
+    if cached_obj:
+        return cached_obj
 
     # 2. get the list of providers to try
     providers_to_try = _get_active_providers_sorted(provider)
@@ -86,12 +85,10 @@ def get_exchange_rate_data(
     )
 
     # 4. Save to DB
-    CurrencyExchangeRate.objects.create(
+    return CurrencyExchangeRate.objects.create(
         source_currency=source_currency,
         exchanged_currency=exchanged_currency,
         valuation_date=valuation_date,
         rate_value=rate_value,
         provider=provider_used
     )
-
-    return rate_value
