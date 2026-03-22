@@ -97,8 +97,7 @@
 <div class="breadcrumbs">
   <a href="{% url 'admin:index' %}">Home</a>
   &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
-  &rsaquo; <a href="{% url 'admin:exchange_currencyexchangerate_changelist' %}">{{ opts.verbose_name_plural|capfirst
-    }}</a>
+  &rsaquo; <a href="{% url 'admin:exchange_currencyexchangerate_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
   &rsaquo; Multi-Converter Tool
 </div>
 {% endblock %}
