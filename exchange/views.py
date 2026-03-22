@@ -26,11 +26,12 @@ class ConvertAPIView(APIView):
         except Currency.DoesNotExist:
             return Response({"error": "Invalid currency code"}, status=status.HTTP_400_BAD_REQUEST)
 
-        rate = get_exchange_rate_data(source_currency=source, exchanged_currency=target, valuation_date=datetime.date.today())
-        converted_amount = amount * rate
+        rate_obj = get_exchange_rate_data(source_currency=source, exchanged_currency=target, valuation_date=datetime.date.today())
+        converted_amount = amount * rate_obj.rate_value
 
         return Response({
-            "rate": rate,
+            "rate": rate_obj.rate_value,
+            "provider": rate_obj.provider.name,
             "converted_amount": converted_amount
         })
 
