@@ -48,6 +48,9 @@ class CurrencyBeaconProvider(BaseProvider):
                 raise ValueError(f"CurrencyBeacon API error: {response_coe}")
             
             rates = data.get('response', {}).get('rates', {})
+            if isinstance(rates, list): # to prevent for unavaileble symbols
+                rates = {}
+            
             rate = rates.get(exchanged_currency)
             
             if rate is None:
