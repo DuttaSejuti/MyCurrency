@@ -39,37 +39,40 @@ class CurrencyExchangeRateAdmin(admin.ModelAdmin):
 
     def convert_view(self, request):
         currencies = Currency.objects.all()
-        result = None
+        results = []
+        source_curr = None
+        amount = Decimal("1.00")
         
         if request.method == "POST":
             from_id = request.POST.get("from_currency")
-            to_id = request.POST.get("to_currency")
+            to_ids = request.POST.getlist("to_currencies")
             amount_val = request.POST.get("amount", "1")
             
             try:
-                from_curr = Currency.objects.get(id=from_id)
-                to_curr = Currency.objects.get(id=to_id)
+                source_curr = Currency.objects.get(id=from_id)
                 amount = Decimal(amount_val)
                 
-                # Use our adapter-based service!
-                rate_obj = get_exchange_rate_data(from_curr, to_curr, datetime.date.today())
-                
-                result = {
-                    "from": from_curr.code,
-                    "to": to_curr.code,
-                    "amount": amount,
-                    "rate": rate_obj.rate_value,
-                    "provider": rate_obj.provider.name,
-                    "converted": amount * rate_obj.rate_value,
-                }
+                for to_id in to_ids:
+                    target_curr = Currency.objects.get(id=to_id)
+                    # Use our adapter-based service!
+                    rate_obj = get_exchange_rate_data(source_curr, target_curr, datetime.date.today())
+                    
+                    results.append({
+                        "to": target_curr.code,
+                        "rate": rate_obj.rate_value,
+                        "provider": rate_obj.provider.name,
+                        "converted": amount * rate_obj.rate_value,
+                    })
             except Exception as e:
                 messages.error(request, f"Conversion failed: {str(e)}")
 
         context = {
             **self.admin_site.each_context(request),
-            "title": "Backoffice Converter",
+            "title": "Backoffice Multi-Converter",
             "currencies": currencies,
-            "result": result,
+            "results": results,
+            "source": source_curr,
+            "amount": amount,
             "opts": self.model._meta,
         }
         return render(request, "admin/currency_converter.html", context)
