@@ -29,6 +29,7 @@ class CurrencyExchangeRateAdmin(admin.ModelAdmin):
     list_filter = ('valuation_date', 'provider', 'source_currency', 'exchanged_currency')
     date_hierarchy = 'valuation_date'
     readonly_fields = ('created_at', 'updated_at')
+    change_list_template = "admin/exchange_rates_list.html"
 
     def get_urls(self):
         urls = super().get_urls()
