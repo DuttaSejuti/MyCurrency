@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block content %}
+  <h1>Currency Converter (Backoffice)</h1>
+
+  <form method="post" style="margin-bottom: 20px;">
+    {% csrf_token %}
+    <label for="from_currency">From:</label>
+    <select name="from_currency" id="from_currency">
+      {% for currency in currencies %}
+        <option value="{{ currency.id }}" {% if result and result.from == currency.code %}selected{% endif %}>
+          {{ currency.code }} - {{ currency.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="to_currency">To:</label>
+    <select name="to_currency" id="to_currency">
+      {% for currency in currencies %}
+        <option value="{{ currency.id }}" {% if result and result.to == currency.code %}selected{% endif %}>
+          {{ currency.code }} - {{ currency.name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="amount">Amount:</label>
+    <input type="number" name="amount" id="amount" step="0.01" value="{{ result.amount|default:'1' }}"/>
+
+    <button type="submit" class="default">Convert</button>
+  </form>
+
+  {% if result %}
+    <h2>Conversion Result</h2>
+    <p>{{ result.amount }} {{ result.from }} = {{ result.converted|floatformat:2 }} {{ result.to }}</p>
+    <p>Rate used: {{ result.rate }}</p>
+  {% endif %}
+
+  {% if messages %}
+    <ul class="messagelist">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+{% endblock %}
