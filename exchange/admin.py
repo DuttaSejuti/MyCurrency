@@ -69,7 +69,7 @@ class CurrencyExchangeRateAdmin(admin.ModelAdmin):
 
         context = {
             **self.admin_site.each_context(request),
-            "title": "Backoffice Multi-Converter",
+            "title": "Backoffice Multi-Currency Converter",
             "currencies": currencies,
             "results": results,
             "source": source_curr,
