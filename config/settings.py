@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-8#r9e^7ctg63h-z+w^c!_+i-(scfm21u+&v+1(0w+u894=_@25
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -78,11 +78,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mycurrency_db',
-        'USER': 'mycurrency_user',
-        'PASSWORD': 'mycurrency_password',
-        'HOST': '127.0.0.1',
-        'PORT': '5433',
+        'NAME': config('POSTGRES_DB', default='mycurrency_db'),
+        'USER': config('POSTGRES_USER', default='mycurrency_user'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='mycurrency_password'),
+        'HOST': config('POSTGRES_HOST', default='127.0.0.1'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
     }
 }
 
